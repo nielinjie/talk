@@ -1,14 +1,9 @@
 package talk
 
-import org.specs._
+import org.specs2.mutable.Specification
 object TalkSpec extends Specification {
-  "talk spec".isSpecifiedBy(
-    SessionSpec,
-    QuestionSpec
-  )
-  object SessionSpec extends Specification{
-  }
-  object QuestionSpec extends Specification{
+  "talk spec" in {
+
 
     "quetion has output and input" in {
       
@@ -69,14 +64,14 @@ object TalkSpec extends Specification {
 
       }
     }
-    "default question types".isSpecifiedBy(
-      SingleChioseSpec,MultipleChoiseSpec
-    )
-    object SingleChioseSpec extends Specification{
-
-    }
-    object MultipleChoiseSpec extends Specification{
-      
-    }
+//    "default question types".isSpecifiedBy(
+//      SingleChioseSpec,MultipleChoiseSpec
+//    )
+//    object SingleChioseSpec extends Specification{
+//
+//    }
+//    object MultipleChoiseSpec extends Specification{
+//
+//    }
   }
 }
