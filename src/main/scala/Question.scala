@@ -5,31 +5,16 @@ import talk._
 import scalaz._
 import Scalaz._
 
-abstract class Question[AT](parent: Option[Session], val question: String) extends Session(parent) with Output with Input {
+abstract class Question[AT](parent: Option[Session], val question: String) extends Session(parent){
 
-  def ask(): Response[AT] = {
-    output(this.question)
-    doWithAnswer(input())
+  def ask(implicit env:Env): Response[AT] = {
+    env.output(this.question)
+    doWithAnswer(env.input())
   }
 
   def doWithAnswer(answerInput: String): Response[AT]
 }
 
-
-
-//abstract class RetryQuestion[AT](parent:Option[Session], question:String) extends Question[AT](parent,question){
-//  override def ask(): Response[AT] ={
-//      output(this.question)
-//      val result=doWithAnswer(input())
-//      if (result.isFailure && !(result == Left(Canceled()).fail)){
-//        output("try again")
-//        ask()
-//      }else{
-//        result
-//      }
-//
-//  }
-//}
 
 //class SingleChoise[AT](parent:Option[Session],question:String,val options:List[AT])
 //extends Question[AT](parent,question) with HasOptions[AT]{
@@ -66,18 +51,7 @@ abstract class Question[AT](parent: Option[Session], val question: String) exten
 //    new Answered(middleResult.map(this.options.apply(_)))
 //  }
 //}
-//trait Retry[AT] extends Question[AT]{
-//  override def ask():Response[AT]={
-//    super.ask() match{
-//      case InvalidAnswer(message)=>
-//        output(message)
-//        output("retry - ")
-//        ask()
-//      case re:Any=>re
-//    }
-//  }
-//}
-//
+
 //trait HasOptions[IT]{
 //  val options:List[IT]
 //  def optionsToString()={
@@ -134,27 +108,5 @@ abstract class Question[AT](parent: Option[Session], val question: String) exten
 //  }
 //}
 //
-//trait  Transfer[AT]{
-//  type MT=Any
-//  type TransferService=(Either[String,MT]=>Either[MT,Response[AT]])
-//  val transferServices:List[TransferService]=List()
-//  def transfer(input:String):Response[AT]={
-//    var middleResult:Either[String,MT]=Left(input)
-//    transferServices.foreach({
-//        transferService:TransferService=>
-//        transferService(middleResult)
-//        match {
-//          case Right(response)=> return response
-//          case Left(mr)=>middleResult=Right(mr)
-//        }
-//      })
-//    middleResult match{
-//      case Right(mt)=>mt match{
-//          case a:AT=> Answered(a)
-//          case _=> InvalidAnswer("input can not be transfered to answer")
-//        }
-//      case _=> InvalidAnswer("have you set transfer services?")
-//    }
-//  }
-//}
+
 

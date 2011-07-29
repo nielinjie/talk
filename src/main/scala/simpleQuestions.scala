@@ -11,12 +11,12 @@ class SimpleQuestion[AT](parent: Option[Session], question: String, val doWith: 
 }
 
 trait Retry[AT] extends Question[AT] {
-  abstract override def ask(): Response[AT] = {
-    output(this.question)
-    val result = doWithAnswer(input())
+  abstract override def ask(implicit env:Env): Response[AT] = {
+    env.output(this.question)
+    val result = doWithAnswer(env.input())
     if (result.isFailure && !(result == Left(Canceled()).fail)) {
-      output("try again")
-      ask()
+      env.output("try again")
+      ask(env)
     } else {
       result
     }

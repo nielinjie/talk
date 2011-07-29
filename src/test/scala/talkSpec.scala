@@ -9,38 +9,36 @@ import org.specs2.execute._
 object TalkSpec extends Specification {
   "talk spec" in {
     "quetion has output and input" in {
-      val question = new SimpleQuestion(None, "A simple question", {case input => input.success}) with StringOutputInput {
-        override val inputFromString = "answer"
-      }
+      implicit val env: Env = new StringOutputInput("answer")
+      val question = new SimpleQuestion(None, "A simple question", {
+        case input => input.success
+      })
       question.ask.toOption must beSome.which(_ == "answer")
     }
     "question can be validated before return" in {
+      implicit val env: Env = new StringOutputInput("no\nyes")
       val question = new SimpleQuestion(None, "A simple question", {
         case "yes" => "yes".success
         case _ => Right("must be yes").fail
-      }) with Retry[String] with StringOutputInput {
-        override val inputFromString = "no\nyes"
-
-      }
+      }) with Retry[String]
       question.ask.toOption must beSome.which(_ == "yes")
     }
     "question can be canceld" in {
+      implicit val env: Env = new StringOutputInput("no\nnoe\ncancel")
 
       val question = new SimpleQuestion(None, "A simple question", {
         case "yes" => "yes".success
         case _ => Right("must be yes").fail
-      }) with Retry[String] with Cancel[String] with StringOutputInput {
-        override val inputFromString = "no\nnoe\ncancel"
-      }
+      }) with Retry[String] with Cancel[String]
       question.ask.fail.toOption must beSome.which(_ == Left(Canceled()))
     }
     "question can be optional" in {
+      implicit val env: Env = new StringOutputInput("no\nnoe\nnone")
+
       val question = new SimpleQuestion(None, "A simple question", {
         case "yes" => "yes".some.success
         case _ => Right("must be yes").fail
-      }) with Retry[Option[String]] with Optional[String] with StringOutputInput {
-        override val inputFromString = "no\nnoe\nnone"
-      }
+      }) with Retry[Option[String]] with Optional[String]
       question.ask.toOption must beSome.which(_ == None)
     }
     //    "question can be validate" in {
