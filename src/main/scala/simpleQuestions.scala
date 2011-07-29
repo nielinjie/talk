@@ -14,7 +14,7 @@ trait Retry[AT] extends Question[AT] {
   abstract override def ask(implicit env:Env): Response[AT] = {
     env.output(this.question)
     val result = doWithAnswer(env.input())
-    if (result.isFailure && !(result == Left(Canceled()).fail)) {
+    if (result.isFailure && !(result == Left(Canceled).fail)) {
       env.output("try again")
       ask(env)
     } else {
@@ -34,7 +34,7 @@ trait BeforeInterceptor[AT] extends SimpleQuestion[AT] {
 trait Cancel[AT] extends BeforeInterceptor[AT] {
   val cancelKeyword: String = "cancel"
   override val before: PartialFunction[String, Response[AT]]= {
-    case a if a == cancelKeyword => Left(Canceled()).fail
+    case a if a == cancelKeyword => Left(Canceled).fail
   }
 }
 

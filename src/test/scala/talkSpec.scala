@@ -4,7 +4,6 @@ import org.specs2.mutable.Specification
 import talk._
 import scalaz._
 import Scalaz._
-import org.specs2.execute._
 
 object TalkSpec extends Specification {
   "talk spec" in {
@@ -13,84 +12,60 @@ object TalkSpec extends Specification {
       val question = new SimpleQuestion(None, "A simple question", {
         case input => input.success
       })
-      question.ask.toOption must beSome.which(_ == "answer")
+      question.ask must equalTo ("answer".success)
     }
     "question can be validated before return" in {
       implicit val env: Env = new StringOutputInput("no\nyes")
       val question = new SimpleQuestion(None, "A simple question", {
         case "yes" => "yes".success
-        case _ => Right("must be yes").fail
+        case _ => "must be yes".asFail
       }) with Retry[String]
-      question.ask.toOption must beSome.which(_ == "yes")
+      question.ask must equalTo ("yes".success)
     }
     "question can be canceld" in {
       implicit val env: Env = new StringOutputInput("no\nnoe\ncancel")
 
       val question = new SimpleQuestion(None, "A simple question", {
         case "yes" => "yes".success
-        case _ => Right("must be yes").fail
+        case _ => "must be yes".asFail
       }) with Retry[String] with Cancel[String]
-      question.ask.fail.toOption must beSome.which(_ == Left(Canceled()))
+      question.ask must equalTo (Canceled:Response[String])
     }
     "question can be optional" in {
       implicit val env: Env = new StringOutputInput("no\nnoe\nnone")
 
       val question = new SimpleQuestion(None, "A simple question", {
         case "yes" => "yes".some.success
-        case _ => Right("must be yes").fail
+        case _ => "must be yes".asFail
       }) with Retry[Option[String]] with Optional[String]
-      question.ask.toOption must beSome.which(_ == None)
+      question.ask must equalTo(None.success)
     }
-    //    "question can be validate" in {
-    //      class Validater extends Transfer[String]#TransferService {
-    //        override def apply(input: Either[String, Transfer[String]#MT]): Either[Transfer[String]#MT, Response[String]] = {
-    //          input match {
-    //            case Left(string) => if (string == "fack") Right(InvalidAnswer("fack answer")) else Right(Answered(string))
-    //          }
-    //        }
-    //      }
-    //      class question extends SimpleQuestion(None, "a validated question") {
-    //        override val transferServices = List(new Validater())
-    //      }
-    //      object fackAnswer extends question with StringOutputInput {
-    //        override val inputFromString = "fack"
-    //      }
-    //      fackAnswer.ask must beEqualTo(InvalidAnswer("fack answer"))
-    //      object realAnswer extends question with StringOutputInput {
-    //        override val inputFromString = "real"
-    //      }
-    //      realAnswer.ask must beEqualTo(Answered("real"))
-    //    }
-    //    "question can be retry when validate faild" in {
-    //      class Validater extends Transfer[String]#TransferService {
-    //        override def apply(input: Either[String, Transfer[String]#MT]): Either[Transfer[String]#MT, Response[String]] = {
-    //          input match {
-    //            case Left(string) => if (string == "fack") Right(InvalidAnswer("fack answer")) else Right(Answered(string))
-    //          }
-    //        }
-    //      }
-    //      class question extends SimpleQuestion(None, "a validated question") with Retry[String] {
-    //        override val transferServices = List(new Validater())
-    //      }
-    //      object fackThenRealAnswer extends question with StringOutputInput {
-    //        override val inputFromString = "fack\nreal"
-    //      }
-    //      fackThenRealAnswer.ask must beEqualTo(Answered("real"))
-    //    }
-    //    "question can be set to optional" in {
-    //      class question extends SimpleQuestion(None, "a validated question") {
-    //        override val transferServices = List(new Optional(), new CopyTransfer())
-    //      }
-    //      object canceledAnswer extends question with StringOutputInput {
-    //        override val inputFromString = ""
-    //      }
-    //      canceledAnswer.ask must beEqualTo(NotAnswered)
-    //    }
-    //    "question is compositable" in {
-    //      "questions as sequence" in {
-    //
-    //      }
-    //    }
+    "question is compositable" in {
+      "totally success" in {
+        implicit val env:Env = new StringOutputInput("foo\nbar")
+        val question = new SimpleQuestion(None, "add me" , {
+        case a => a.success
+      })
+      val result=for {
+        a<-question.ask
+        b<-question.ask
+      } yield a+b
+        result must equalTo("foobar".success)
+      }
+      "something wrong" in {
+        implicit val env:Env = new StringOutputInput("foo\nbar")
+        val question = new SimpleQuestion(None, "add me" , {
+        case a if a=="foo" => a.success
+        case _ => "not cool".asFail
+      })
+      val result=for {
+        a<-question.ask
+        b<-question.ask
+      } yield a+b
+        result must equalTo("not cool".asFail)
+      }
+
+    }
     //    "default question types".isSpecifiedBy(
     //      SingleChioseSpec,MultipleChoiseSpec
     //    )
