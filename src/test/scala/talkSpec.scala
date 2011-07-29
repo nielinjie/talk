@@ -4,44 +4,44 @@ import org.specs2.mutable.Specification
 import talk._
 import scalaz._
 import Scalaz._
+import org.specs2.execute._
 
 object TalkSpec extends Specification {
   "talk spec" in {
     "quetion has output and input" in {
-      val question = new SimpleQuestion(None, "A simple question") with StringOutputInput {
+      val question = new SimpleQuestion(None, "A simple question", {case input => input.success}) with StringOutputInput {
         override val inputFromString = "answer"
       }
       question.ask.toOption must beSome.which(_ == "answer")
     }
     "question can be validated before return" in {
-      val question = new SimpleQuestion(None, "A simple question") with Retry[String] with StringOutputInput {
+      val question = new SimpleQuestion(None, "A simple question", {
+        case "yes" => "yes".success
+        case _ => Right("must be yes").fail
+      }) with Retry[String] with StringOutputInput {
         override val inputFromString = "no\nyes"
 
-        override def doWithAnswer(answer: String): Response[String] = {
-          if (answer == "yes") {
-            "yes".success
-          } else {
-
-            Right("must be yes").fail
-          }
-        }
       }
       question.ask.toOption must beSome.which(_ == "yes")
     }
     "question can be canceld" in {
-      val question = new SimpleQuestion(None, "A simple question") with Retry[String] with Cancel[String] with StringOutputInput {
-        override val inputFromString = "no\nnoe\ncancel"
 
-        override def doWithAnswer(answer: String): Response[String] = {
-          println("in concept")
-          if (answer == "yes") {
-            "yes".success
-          } else {
-            Right("must be yes").fail
-          }
-        }
+      val question = new SimpleQuestion(None, "A simple question", {
+        case "yes" => "yes".success
+        case _ => Right("must be yes").fail
+      }) with Retry[String] with Cancel[String] with StringOutputInput {
+        override val inputFromString = "no\nnoe\ncancel"
       }
       question.ask.fail.toOption must beSome.which(_ == Left(Canceled()))
+    }
+    "question can be optional" in {
+      val question = new SimpleQuestion(None, "A simple question", {
+        case "yes" => "yes".some.success
+        case _ => Right("must be yes").fail
+      }) with Retry[Option[String]] with Optional[String] with StringOutputInput {
+        override val inputFromString = "no\nnoe\nnone"
+      }
+      question.ask.toOption must beSome.which(_ == None)
     }
     //    "question can be validate" in {
     //      class Validater extends Transfer[String]#TransferService {

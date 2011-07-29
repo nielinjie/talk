@@ -15,34 +15,7 @@ abstract class Question[AT](parent: Option[Session], val question: String) exten
   def doWithAnswer(answerInput: String): Response[AT]
 }
 
-trait Retry[AT] extends Question[AT] {
-  abstract override def ask(): Response[AT] = {
-    output(this.question)
-    val result = doWithAnswer(input())
-    if (result.isFailure && !(result == Left(Canceled()).fail)) {
-      output("try again")
-      ask()
-    } else {
-      result
-    }
-  }
-}
 
-trait Cancel[AT] extends Question[AT] {
-  abstract override def doWithAnswer(answerInput: String): Response[AT] = {
-    //    println("in cancel")
-    //    if (answerInput == "cancel"){
-    //      println ("canceled")
-    //      Left(Canceled()).fail
-    //    }
-    //    else {
-    //      println("to super")
-    //      super.doWithAnswer(answerInput)
-    //    }
-    //  }
-    super.doWithAnswer(answerInput)
-  }
-}
 
 //abstract class RetryQuestion[AT](parent:Option[Session], question:String) extends Question[AT](parent,question){
 //  override def ask(): Response[AT] ={
