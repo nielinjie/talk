@@ -12,7 +12,7 @@ import Scalaz._
 package object talk {
 
   case object Canceled
-
+  case object Quit
   type TalkError = Either[Canceled.type, String]
   type Response[AT] = Validation[TalkError, AT]
   //  trait ResponseHelpers[AT] {

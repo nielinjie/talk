@@ -15,7 +15,6 @@ abstract class Question[AT](parent: Option[Session], val question: String) exten
   def doWithAnswer(answerInput: String): Response[AT]
 }
 
-
 //class SingleChoise[AT](parent:Option[Session],question:String,val options:List[AT])
 //extends Question[AT](parent,question) with HasOptions[AT]{
 //  val multi=new MultipleChoise(parent,question,options)
